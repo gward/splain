@@ -22,14 +22,18 @@ Run all tests and linters:
 
 ## Try it out
 
-Command-line interface: look foor price moves of at least 5% in GOOG, from May 15 to Jun 20 2026.
+### Command-line interface
+
+Look for price moves of at least 5% in GOOG, from May 15 to Jun 20 2026.
 Search for news stories +/- 1 day from each price move and list everything:
 
 ```
 uv run splain GOOG --from 2026-05-15 --to 2026-06-20 --threshold 5.0 --window 1
 ```
 
-Web interface: start the API server with
+### RESTful API
+
+Start the API server with
 
 ```
 uv run splain --api
@@ -37,5 +41,29 @@ uv run splain --api
 
 and then you can do the same query as above as follows:
 ```
-curl "http://localhost:5000/correlatiojns/GOOG?from=2026-05-15&to=2026-06-20&threshold=5.0&window=1.0"
+curl "http://localhost:5000/correlations/GOOG?from=2026-05-15&to=2026-06-20&threshold=3.0&window=1"
+```
+
+### Chat mode
+
+Start the server as above. Each turn in the conversation is another POST request.
+Each chat is identified by a client-generated string.
+
+```
+chat_id=$(uuidgen)
+curl \
+  -X POST \
+  -H "Content-Type: application/json" \
+  "http://localhost:5000/chat/${chat_id}" \
+  -d '{"message": "explain GOOG price moves since mid May 2026"}'
+```
+
+Then send a followup message in the same chat:
+
+```
+curl \
+  -X POST \
+  -H "Content-Type: application/json" \
+  "http://localhost:5000/chat/${chat_id}" \
+  -d '{"message": "tell me more about key departures"}'
 ```
