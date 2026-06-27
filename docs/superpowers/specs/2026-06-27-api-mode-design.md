@@ -68,7 +68,7 @@ All errors return JSON `{"error": "<message>"}` with an appropriate HTTP status:
 
 | Status | Condition                                              |
 |--------|--------------------------------------------------------|
-| 400    | Missing ticker, bad date format, unknown source value  |
+| 400    | Bad date format, unknown source value                  |
 | 404    | Ticker not found (yfinance returns no data)            |
 | 503    | API key missing or upstream request fails              |
 
@@ -92,6 +92,10 @@ No authentication on the server itself — localhost-only binding is the securit
 - Add `--port` option (integer, default 5000)
 - Make `ticker` argument optional (required only when `--api` is False)
 - When `--api` is set: call `server.run(host="127.0.0.1", port=port)` instead of the analysis flow
+
+### Dependency change: `pyproject.toml`
+
+Add `flask` to the `[project] dependencies` list (`uv add flask`).
 
 ### No other files change
 
