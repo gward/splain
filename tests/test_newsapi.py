@@ -5,7 +5,7 @@ import datetime
 import pytest
 import responses
 
-from splain import news
+from splain import news, newsapi
 
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
 
@@ -28,7 +28,7 @@ NEWSAPI_RESPONSE = {
 def test_fetch_stories_returns_news_story_objects():
     responses.add(responses.GET, NEWSAPI_URL, json=NEWSAPI_RESPONSE, status=200)
 
-    stories = news.fetch_stories("AAPL", datetime.date(2024, 2, 2), api_key="test-key")
+    stories = newsapi.fetch_stories("AAPL", datetime.date(2024, 2, 2), api_key="test-key")
 
     assert len(stories) == 1
     assert isinstance(stories[0], news.NewsStory)
@@ -40,7 +40,7 @@ def test_fetch_stories_returns_news_story_objects():
 def test_fetch_stories_returns_empty_on_426():
     responses.add(responses.GET, NEWSAPI_URL, status=426)
 
-    stories = news.fetch_stories("AAPL", datetime.date(2020, 1, 1), api_key="test-key")
+    stories = newsapi.fetch_stories("AAPL", datetime.date(2020, 1, 1), api_key="test-key")
 
     assert stories == []
 
@@ -48,4 +48,4 @@ def test_fetch_stories_returns_empty_on_426():
 def test_fetch_stories_raises_without_api_key(monkeypatch):
     monkeypatch.delenv("NEWSAPI_KEY", raising=False)
     with pytest.raises(EnvironmentError, match="NEWSAPI_KEY"):
-        news.fetch_stories("AAPL", datetime.date(2024, 2, 2))
+        newsapi.fetch_stories("AAPL", datetime.date(2024, 2, 2))

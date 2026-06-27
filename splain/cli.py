@@ -6,9 +6,14 @@ import os
 import click
 import dotenv
 
-from splain import correlate, prices
+from splain import correlate, finnhub, newsapi, prices
 
 dotenv.load_dotenv()
+
+SOURCES = {
+    "newsapi": (newsapi.fetch_stories, "NEWSAPI_KEY"),
+    "finnhub": (finnhub.fetch_stories, "FINNHUB_KEY"),
+}
 
 
 def _default_start() -> str:
@@ -51,11 +56,26 @@ def _default_end() -> str:
     default=1,
     help="News search window +/-days around move",
 )
-def app(ticker, start, end, threshold, window):
+@click.option(
+    "--source",
+    "-s",
+    type=click.Choice(["newsapi", "finnhub", "none"]),
+    default="finnhub",
+    help="News source (requires corresponding API key in env)",
+)
+def app(ticker, start, end, threshold, window, source):
     """Explain stock price moves with contemporary news stories."""
     ticker = ticker.upper()
     start_date = datetime.date.fromisoformat(start)
     end_date = datetime.date.fromisoformat(end)
+
+    if source != "none":
+        fetch_fn, env_var = SOURCES[source]
+        api_key = os.environ.get(env_var)
+        if not api_key:
+            raise click.ClickException(f"{env_var} not set in environment")
+    else:
+        fetch_fn, api_key = None, None
 
     print(f"Fetching price history for {ticker} ({start} to {end})")
     try:
@@ -68,12 +88,11 @@ def app(ticker, start, end, threshold, window):
         print(f"No moves >= {threshold}% found in this period.")
         return
 
-    resolved_key = os.environ.get("NEWSAPI_KEY")
-    if resolved_key:
+    if fetch_fn:
         print(f"Found {len(moves)} move(s) >= {threshold}%. Fetching news...\n")
-        correlations = correlate.correlate(moves, window_days=window, api_key=resolved_key)
+        correlations = correlate.correlate(moves, fetch_fn, window_days=window, api_key=api_key)
     else:
-        print(f"Found {len(moves)} move(s) >= {threshold}%. Set NEWSAPI_KEY to fetch news.\n")
+        print(f"Found {len(moves)} move(s) >= {threshold}%.\n")
         correlations = [correlate.Correlation(move=m) for m in moves]
 
     for corr in correlations:

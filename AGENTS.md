@@ -38,6 +38,7 @@ NEWSAPI_KEY=...
 - Always use `from pkg import mod` for nested modules: `from unittest import mock` not `import unittest.mock`
 - This applies universally: stdlib, third-party, and internal (`from splain import prices`)
 - NEVER use unittest.mock: it encourages bad test habits
+- ALWAYS import modules directly, never through another module
 
 ## Running
 ```bash
