@@ -33,7 +33,7 @@ def fetch_stories(
             "from": from_dt.isoformat(),
             "to": to_dt.isoformat(),
             "sortBy": "relevancy",
-            "pageSize": 10,
+            "pageSize": "10",
             "language": "en",
         },
         headers={"X-Api-Key": api_key},
