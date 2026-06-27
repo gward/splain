@@ -25,7 +25,7 @@ def _default_end() -> str:
 
 
 @click.command(context_settings={"show_default": True})
-@click.argument("ticker")
+@click.argument("ticker", required=False)
 @click.option(
     "--from",
     "start",
@@ -63,8 +63,39 @@ def _default_end() -> str:
     default="finnhub",
     help="News source (requires corresponding API key in env)",
 )
-def app(ticker, start, end, threshold, window, source):
+@click.option(
+    "--api",
+    "use_api",
+    is_flag=True,
+    default=False,
+    help="Start REST API server instead of running a one-shot analysis",
+)
+@click.option(
+    "--port",
+    default=5000,
+    help="Port for the API server",
+)
+def app(
+    ticker: str | None,
+    start: str,
+    end: str,
+    threshold: float,
+    window: int,
+    source: str,
+    use_api: bool,
+    port: int,
+) -> None:
     """Explain stock price moves with contemporary news stories."""
+    if use_api:
+        from splain import server
+
+        print(f"Starting API server on http://127.0.0.1:{port}")
+        server.app.run(host="127.0.0.1", port=port)
+        return
+
+    if not ticker:
+        raise click.UsageError("TICKER is required when not using --api")
+
     ticker = ticker.upper()
     start_date = datetime.date.fromisoformat(start)
     end_date = datetime.date.fromisoformat(end)
