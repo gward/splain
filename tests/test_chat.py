@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from splain import chat, correlate, news, prices
+from splain.server import app as _flask_app
 
 
 @pytest.fixture(autouse=True)
@@ -249,3 +250,58 @@ def test_post_message_ticker_not_found_returns_error_reply(monkeypatch):
     assert "INVALID" in reply or "price data" in reply.lower()
     # narrate not called (only 1 Claude call consumed)
     assert MockClient.return_value.messages.create.call_count == 1
+
+
+# --- route integration tests ---
+
+
+@pytest.fixture
+def client():
+    _flask_app.config["TESTING"] = True
+    with _flask_app.test_client() as c:
+        yield c
+
+
+def test_route_missing_api_key_returns_503(client, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    resp = client.post("/chat/s1", json={"message": "hello"})
+    assert resp.status_code == 503
+    assert "error" in resp.get_json()
+
+
+def test_route_missing_message_field_returns_400(client, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    resp = client.post("/chat/s1", json={"text": "oops"})
+    assert resp.status_code == 400
+    assert "error" in resp.get_json()
+
+
+def test_route_non_json_body_returns_400(client, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    resp = client.post("/chat/s1", data="not json", content_type="text/plain")
+    assert resp.status_code == 400
+
+
+def test_route_post_returns_reply(client, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    extract_resp = _anthropic_response("null")
+    narrate_resp = _anthropic_response("Welcome! What stock?")
+
+    with patch("splain.chat.anthropic.Anthropic") as MockClient:
+        MockClient.return_value.messages.create.side_effect = [extract_resp, narrate_resp]
+        resp = client.post("/chat/route-test", json={"message": "Hi"})
+
+    assert resp.status_code == 200
+    assert resp.get_json()["reply"] == "Welcome! What stock?"
+
+
+def test_route_delete_clears_session(client):
+    chat._sessions["del-me"] = {"messages": [], "last_result": None}
+    resp = client.delete("/chat/del-me")
+    assert resp.status_code == 200
+    assert "del-me" not in chat._sessions
+
+
+def test_route_delete_nonexistent_ok(client):
+    resp = client.delete("/chat/ghost")
+    assert resp.status_code == 200

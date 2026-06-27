@@ -92,3 +92,26 @@ def get_correlations(ticker: str) -> flask.Response:
             ],
         }
     )
+
+
+@app.route("/chat/<session_id>", methods=["POST"])
+def post_chat(session_id: str) -> flask.Response:
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return flask.jsonify({"error": "ANTHROPIC_API_KEY not set in environment"}), 503  # type: ignore[return-value]
+
+    body = flask.request.get_json(silent=True)
+    if not body or "message" not in body:
+        return flask.jsonify({"error": "request body must be JSON with a 'message' field"}), 400  # type: ignore[return-value]
+
+    from splain import chat as chat_module
+
+    reply = chat_module.post_message(session_id, body["message"])
+    return flask.jsonify({"reply": reply})
+
+
+@app.route("/chat/<session_id>", methods=["DELETE"])
+def delete_chat(session_id: str) -> flask.Response:
+    from splain import chat as chat_module
+
+    chat_module.clear_session(session_id)
+    return flask.jsonify({}), 200  # type: ignore[return-value]
