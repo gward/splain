@@ -37,6 +37,7 @@ NEWSAPI_KEY=...
 - Import modules, not things in modules: `import datetime` not `from datetime import date`
 - Always use `from pkg import mod` for nested modules: `from unittest import mock` not `import unittest.mock`
 - This applies universally: stdlib, third-party, and internal (`from splain import prices`)
+- NEVER use unittest.mock: it encourages bad test habits
 
 ## Running
 ```bash
