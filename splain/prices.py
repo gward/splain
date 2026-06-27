@@ -2,9 +2,12 @@
 
 import dataclasses
 import datetime
+import logging
 
 import pandas as pd
 import yfinance as yf
+
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 
 class NotFound(Exception):
