@@ -7,6 +7,10 @@ import pandas as pd
 import yfinance as yf
 
 
+class NotFound(Exception):
+    pass
+
+
 @dataclasses.dataclass
 class PriceMove:
     ticker: str
@@ -17,11 +21,11 @@ class PriceMove:
     volume: int
 
 
-def fetch_history(ticker: str, start: datetime.date, end: datetime.date) -> pd.DataFrame:
+def fetch_history(ticker: str, start: datetime.date, end: datetime.date, session=None) -> pd.DataFrame:
     """Return OHLCV dataframe for *ticker* over [start, end]."""
-    df = yf.download(ticker, start=start, end=end, auto_adjust=True, progress=False)
+    df = yf.download(ticker, start=start, end=end, auto_adjust=True, progress=False, session=session)
     if df.empty:
-        raise ValueError(f"No price data returned for {ticker!r}")
+        raise NotFound(f"No price data returned for {ticker!r}")
     # yfinance >=0.2 returns MultiIndex columns like ("Close", "TSLA") -- flatten them
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)

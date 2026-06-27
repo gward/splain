@@ -33,7 +33,10 @@ def main(ticker, start, end, threshold, window, api_key):
     end_date = datetime.date.fromisoformat(end)
 
     print(f"Fetching price history for {ticker} ({start} to {end})")
-    df = prices.fetch_history(ticker, start_date, end_date)
+    try:
+        df = prices.fetch_history(ticker, start_date, end_date)
+    except prices.NotFound as e:
+        raise click.ClickException(str(e)) from e
     moves = prices.find_moves(df, ticker, threshold_pct=threshold)
 
     if not moves:

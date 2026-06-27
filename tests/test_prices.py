@@ -4,6 +4,8 @@ import datetime
 
 import pandas as pd
 import pytest
+import requests
+import responses
 
 from splain import prices
 
@@ -40,6 +42,14 @@ def test_find_moves_ignores_small_change():
     df = _make_df([100.0, 101.0, 102.0])
     moves = prices.find_moves(df, "TEST", threshold_pct=5.0)
     assert moves == []
+
+
+@responses.activate
+def test_fetch_history_raises_not_found_for_unknown_ticker():
+    with pytest.raises(prices.NotFound):
+        prices.fetch_history(
+            "INVALID", datetime.date(2024, 1, 1), datetime.date(2024, 1, 31), session=requests.Session()
+        )
 
 
 def test_find_moves_returns_price_move_dataclass():
