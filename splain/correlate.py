@@ -1,26 +1,25 @@
 """Pair price moves with nearby news stories."""
 
-from dataclasses import dataclass, field
+import dataclasses
 
-from splain.news import NewsStory, fetch_stories
-from splain.prices import PriceMove
+from splain import news, prices
 
 
-@dataclass
+@dataclasses.dataclass
 class Correlation:
-    move: PriceMove
-    stories: list[NewsStory] = field(default_factory=list)
+    move: prices.PriceMove
+    stories: list[news.NewsStory] = dataclasses.field(default_factory=list)
 
 
 def correlate(
-    moves: list[PriceMove],
+    moves: list[prices.PriceMove],
     window_days: int = 1,
     api_key: str | None = None,
 ) -> list[Correlation]:
     """For each price move, fetch news stories from around that date."""
     results = []
     for move in moves:
-        stories = fetch_stories(
+        stories = news.fetch_stories(
             query=move.ticker,
             around=move.date,
             window_days=window_days,

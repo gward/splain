@@ -1,11 +1,11 @@
 """Tests for news fetching (uses vcr cassettes to avoid live HTTP)."""
 
-from datetime import date
-from unittest.mock import MagicMock, patch
+import datetime
+from unittest import mock
 
 import pytest
 
-from splain.news import NewsStory, fetch_stories
+from splain import news
 
 
 MOCK_RESPONSE = {
@@ -24,15 +24,15 @@ MOCK_RESPONSE = {
 
 
 def test_fetch_stories_returns_news_story_objects():
-    mock_resp = MagicMock()
+    mock_resp = mock.MagicMock()
     mock_resp.json.return_value = MOCK_RESPONSE
     mock_resp.raise_for_status.return_value = None
 
-    with patch("splain.news.requests.get", return_value=mock_resp):
-        stories = fetch_stories("AAPL", date(2024, 2, 2), api_key="test-key")
+    with mock.patch("splain.news.requests.get", return_value=mock_resp):
+        stories = news.fetch_stories("AAPL", datetime.date(2024, 2, 2), api_key="test-key")
 
     assert len(stories) == 1
-    assert isinstance(stories[0], NewsStory)
+    assert isinstance(stories[0], news.NewsStory)
     assert stories[0].title == "Apple Reports Record Quarter"
     assert stories[0].source == "Reuters"
 
@@ -40,4 +40,4 @@ def test_fetch_stories_returns_news_story_objects():
 def test_fetch_stories_raises_without_api_key(monkeypatch):
     monkeypatch.delenv("NEWSAPI_KEY", raising=False)
     with pytest.raises(EnvironmentError, match="NEWSAPI_KEY"):
-        fetch_stories("AAPL", date(2024, 2, 2))
+        news.fetch_stories("AAPL", datetime.date(2024, 2, 2))

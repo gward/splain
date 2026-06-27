@@ -1,28 +1,28 @@
 """Fetch and analyse historical stock price data."""
 
-from dataclasses import dataclass
-from datetime import date
+import dataclasses
+import datetime
 
 import pandas as pd
 import yfinance as yf
 
 
-@dataclass
+@dataclasses.dataclass
 class PriceMove:
     ticker: str
-    date: date
+    date: datetime.date
     open: float
     close: float
     pct_change: float
     volume: int
 
 
-def fetch_history(ticker: str, start: date, end: date) -> pd.DataFrame:
+def fetch_history(ticker: str, start: datetime.date, end: datetime.date) -> pd.DataFrame:
     """Return OHLCV dataframe for *ticker* over [start, end]."""
     df = yf.download(ticker, start=start, end=end, auto_adjust=True, progress=False)
     if df.empty:
         raise ValueError(f"No price data returned for {ticker!r}")
-    # yfinance ≥0.2 returns MultiIndex columns like ("Close", "TSLA") — flatten them
+    # yfinance >=0.2 returns MultiIndex columns like ("Close", "TSLA") -- flatten them
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
     df.index = pd.to_datetime(df.index).date
@@ -34,7 +34,7 @@ def find_moves(
     ticker: str,
     threshold_pct: float = 3.0,
 ) -> list[PriceMove]:
-    """Return days where |close-to-close pct change| >= *threshold_pct*."""
+    """Return days where |close-to-close pct change| >= threshold_pct."""
     df = df.copy()
     df["pct_change"] = df["Close"].pct_change() * 100
     significant = df[df["pct_change"].abs() >= threshold_pct]

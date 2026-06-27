@@ -1,12 +1,13 @@
 """Fetch news stories around a given date."""
 
-from dataclasses import dataclass
-from datetime import date, timedelta
+import dataclasses
+import datetime
+import os
 
 import requests
 
 
-@dataclass
+@dataclasses.dataclass
 class NewsStory:
     title: str
     source: str
@@ -17,7 +18,7 @@ class NewsStory:
 
 def fetch_stories(
     query: str,
-    around: date,
+    around: datetime.date,
     window_days: int = 1,
     api_key: str | None = None,
 ) -> list[NewsStory]:
@@ -26,13 +27,12 @@ def fetch_stories(
     Uses NewsAPI (newsapi.org). Set NEWSAPI_KEY env var or pass api_key.
     """
     if api_key is None:
-        import os
         api_key = os.environ.get("NEWSAPI_KEY")
     if not api_key:
-        raise EnvironmentError("NEWSAPI_KEY not set — get a free key at newsapi.org")
+        raise EnvironmentError("NEWSAPI_KEY not set -- get a free key at newsapi.org")
 
-    from_dt = around - timedelta(days=window_days)
-    to_dt = around + timedelta(days=window_days)
+    from_dt = around - datetime.timedelta(days=window_days)
+    to_dt = around + datetime.timedelta(days=window_days)
 
     resp = requests.get(
         "https://newsapi.org/v2/everything",

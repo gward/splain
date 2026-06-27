@@ -8,7 +8,7 @@ CLI: `uv run splain <TICKER> [--from DATE] [--to DATE] [--threshold PCT] [--wind
 - **uv** for all dependency management (`uv add`, `uv sync --extra dev`, `uv run`)
 - **yfinance** for OHLCV price history (no auth required)
 - **NewsAPI** (`newsapi.org`) for news stories — requires `NEWSAPI_KEY`
-- **typer + rich** for CLI and terminal output
+- **typer** for CLI
 - **pytest** for tests
 
 ## Environment
@@ -32,11 +32,11 @@ NEWSAPI_KEY=...
 - Typer initialized with `rich_markup_mode=None` to keep `--help` plain.
 
 ## Conventions
-- `find_moves` default threshold: 3% close-to-close
-- News window default: ±1 day around the move date
 - NewsAPI free tier only covers ~1 month back — return `[]` silently on 426, don't crash
-- yfinance ≥0.2 returns MultiIndex columns — always flatten with `df.columns.get_level_values(0)`
 - If no `NEWSAPI_KEY` is available, show price moves only with a yellow notice; do not error
+- Import modules, not things in modules: `import datetime` not `from datetime import date`
+- Always use `from pkg import mod` for nested modules: `from unittest import mock` not `import unittest.mock`
+- This applies universally: stdlib, third-party, and internal (`from splain import prices`)
 
 ## Running
 ```bash
