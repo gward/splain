@@ -19,14 +19,39 @@ def _default_end() -> str:
     return datetime.date.today().isoformat()
 
 
-@click.command()
+@click.command(context_settings={"show_default": True})
 @click.argument("ticker")
-@click.option("--from", "start", default=_default_start, help="Start date YYYY-MM-DD")
-@click.option("--to", "end", default=_default_end, help="End date YYYY-MM-DD")
-@click.option("--threshold", "-t", default=3.0, help="Min abs % move to report")
-@click.option("--window", "-w", default=1, help="News search window +/-days around move")
-@click.option("--api-key", envvar="NEWSAPI_KEY", default=None, help="NewsAPI key")
-def main(ticker, start, end, threshold, window, api_key):
+@click.option(
+    "--from",
+    "start",
+    default=_default_start,
+    metavar="START",
+    show_default="today - 90 days",
+    help="Start date (YYYY-MM-DD)",
+)
+@click.option(
+    "--to",
+    "end",
+    default=_default_end,
+    metavar="END",
+    show_default="today",
+    help="End date YYYY-MM-DD",
+)
+@click.option(
+    "--threshold",
+    "-t",
+    default=2.0,
+    metavar="T",
+    help="Minimum absolute move to report (percentage)",
+)
+@click.option(
+    "--window",
+    "-w",
+    metavar="W",
+    default=1,
+    help="News search window +/-days around move",
+)
+def app(ticker, start, end, threshold, window):
     """Explain stock price moves with contemporary news stories."""
     ticker = ticker.upper()
     start_date = datetime.date.fromisoformat(start)
@@ -43,7 +68,7 @@ def main(ticker, start, end, threshold, window, api_key):
         print(f"No moves >= {threshold}% found in this period.")
         return
 
-    resolved_key = api_key or os.environ.get("NEWSAPI_KEY")
+    resolved_key = os.environ.get("NEWSAPI_KEY")
     if resolved_key:
         print(f"Found {len(moves)} move(s) >= {threshold}%. Fetching news...\n")
         correlations = correlate.correlate(moves, window_days=window, api_key=resolved_key)
@@ -67,6 +92,3 @@ def main(ticker, start, end, threshold, window, api_key):
             print(f"  {pub}  {story.source}")
             print(f"  {story.title}")
             print(f"  {story.url}\n")
-
-
-app = main
