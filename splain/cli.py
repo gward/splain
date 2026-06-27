@@ -2,19 +2,13 @@
 
 import datetime
 import os
-import typing
 
+import click
 import dotenv
-import typer
 
 from splain import correlate, prices
 
 dotenv.load_dotenv()
-
-app = typer.Typer(
-    help="Explain stock price moves with contemporary news stories.",
-    rich_markup_mode=None,
-)
 
 
 def _default_start() -> str:
@@ -25,17 +19,15 @@ def _default_end() -> str:
     return datetime.date.today().isoformat()
 
 
-@app.command()
-def main(
-    ticker: typing.Annotated[str, typer.Argument(help="Stock ticker symbol, e.g. AAPL")],
-    start: typing.Annotated[str, typer.Option("--from", help="Start date YYYY-MM-DD")] = _default_start(),
-    end: typing.Annotated[str, typer.Option("--to", help="End date YYYY-MM-DD")] = _default_end(),
-    threshold: typing.Annotated[float, typer.Option("--threshold", "-t", help="Min abs % move to report")] = 3.0,
-    window: typing.Annotated[int, typer.Option("--window", "-w", help="News search window +/-days around move")] = 1,
-    api_key: typing.Annotated[
-        typing.Optional[str], typer.Option("--api-key", envvar="NEWSAPI_KEY", help="NewsAPI key")
-    ] = None,
-) -> None:
+@click.command()
+@click.argument("ticker")
+@click.option("--from", "start", default=_default_start, help="Start date YYYY-MM-DD")
+@click.option("--to", "end", default=_default_end, help="End date YYYY-MM-DD")
+@click.option("--threshold", "-t", default=3.0, help="Min abs % move to report")
+@click.option("--window", "-w", default=1, help="News search window +/-days around move")
+@click.option("--api-key", envvar="NEWSAPI_KEY", default=None, help="NewsAPI key")
+def main(ticker, start, end, threshold, window, api_key):
+    """Explain stock price moves with contemporary news stories."""
     ticker = ticker.upper()
     start_date = datetime.date.fromisoformat(start)
     end_date = datetime.date.fromisoformat(end)
@@ -46,7 +38,7 @@ def main(
 
     if not moves:
         print(f"No moves >= {threshold}% found in this period.")
-        raise typer.Exit()
+        return
 
     resolved_key = api_key or os.environ.get("NEWSAPI_KEY")
     if resolved_key:
@@ -71,3 +63,6 @@ def main(
             pub = story.published_at[:10]
             print(f"  {pub}  {story.source}")
             print(f"  {story.title}\n")
+
+
+app = main
