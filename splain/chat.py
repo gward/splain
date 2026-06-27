@@ -3,6 +3,7 @@
 import datetime
 import json
 import os
+import re
 from typing import Any, cast
 
 import anthropic
@@ -45,7 +46,7 @@ def clear_session(session_id: str) -> None:
 
 
 def _extract_query(messages: list[dict[str, str]]) -> dict[str, Any] | None:
-    print(f"_extract_query: {messages[-1]=}")
+    print(f"calling Claude to extract query: {messages[-1]=}")
     client = anthropic.Anthropic()
     resp = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -56,10 +57,17 @@ def _extract_query(messages: list[dict[str, str]]) -> dict[str, Any] | None:
     block = resp.content[0]
     assert isinstance(block, anthropic.types.TextBlock)
     text = block.text.strip()
-    print(f"claude returned {text=!r}")
+
+    # Claude helpfully wraps the JSON in markdown-style quotes, despite the system prompt. ;-(
+    if text.startswith("```"):
+        text = re.sub("^```.*", "", text)
+    if text.endswith("```"):
+        text = re.sub("```$", "", text)
+
     try:
         parsed = json.loads(text)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as err:
+        print(f"warning: could not parse JSON from claude: {err}")
         return None
     if parsed is None or isinstance(parsed, dict):
         return parsed
