@@ -5,6 +5,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from anthropic.types import TextBlock
 
 from splain import chat, correlate, news, prices
 from splain.server import app as _flask_app
@@ -40,7 +41,7 @@ def _fake_story() -> news.NewsStory:
 
 def _anthropic_response(text: str) -> MagicMock:
     resp = MagicMock()
-    resp.content = [MagicMock(text=text)]
+    resp.content = [TextBlock(type="text", text=text)]
     return resp
 
 

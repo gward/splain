@@ -3,7 +3,7 @@
 import datetime
 import json
 import os
-from typing import Any
+from typing import Any, cast
 
 import anthropic
 
@@ -45,14 +45,18 @@ def clear_session(session_id: str) -> None:
 
 
 def _extract_query(messages: list[dict[str, str]]) -> dict[str, Any] | None:
+    print(f"_extract_query: {messages[-1]=}")
     client = anthropic.Anthropic()
     resp = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=256,
         system=_EXTRACT_SYSTEM,
-        messages=messages,
+        messages=cast(list[anthropic.types.MessageParam], messages),
     )
-    text = resp.content[0].text.strip()
+    block = resp.content[0]
+    assert isinstance(block, anthropic.types.TextBlock)
+    text = block.text.strip()
+    print(f"claude returned {text=!r}")
     try:
         parsed = json.loads(text)
     except json.JSONDecodeError:
@@ -92,9 +96,11 @@ def _narrate(messages: list[dict[str, str]], last_result: dict[str, Any] | None)
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=system,
-        messages=messages,
+        messages=cast(list[anthropic.types.MessageParam], messages),
     )
-    return resp.content[0].text
+    block = resp.content[0]
+    assert isinstance(block, anthropic.types.TextBlock)
+    return block.text
 
 
 def _run_correlation(query: dict[str, Any]) -> dict[str, Any] | str:
