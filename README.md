@@ -12,6 +12,16 @@ Then you can setup a virtualenv for this project:
 uv sync
 ```
 
+You'll need to set some API keys in .env:
+```
+NEWSAPI_KEY=...optional....
+FINNHUB_KEY=...recommended...
+ANTHROPIC_API_KEY=...needed for chat...
+```
+
+If you don't set any of these, you won't be able to see news stories -- only price changes.
+Pass `--source none` if that is the case (or `&source=none` to the REST API).
+
 ## Automated tests
 
 Run all tests and linters:
