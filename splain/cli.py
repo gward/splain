@@ -32,7 +32,9 @@ def main(
     end: typing.Annotated[str, typer.Option("--to", help="End date YYYY-MM-DD")] = _default_end(),
     threshold: typing.Annotated[float, typer.Option("--threshold", "-t", help="Min abs % move to report")] = 3.0,
     window: typing.Annotated[int, typer.Option("--window", "-w", help="News search window +/-days around move")] = 1,
-    api_key: typing.Annotated[typing.Optional[str], typer.Option("--api-key", envvar="NEWSAPI_KEY", help="NewsAPI key")] = None,
+    api_key: typing.Annotated[
+        typing.Optional[str], typer.Option("--api-key", envvar="NEWSAPI_KEY", help="NewsAPI key")
+    ] = None,
 ) -> None:
     ticker = ticker.upper()
     start_date = datetime.date.fromisoformat(start)

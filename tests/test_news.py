@@ -7,7 +7,6 @@ import responses
 
 from splain import news
 
-
 NEWSAPI_URL = "https://newsapi.org/v2/everything"
 
 NEWSAPI_RESPONSE = {
