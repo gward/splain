@@ -65,7 +65,8 @@ def main(ticker, start, end, threshold, window, api_key):
         for story in corr.stories:
             pub = story.published_at[:10]
             print(f"  {pub}  {story.source}")
-            print(f"  {story.title}\n")
+            print(f"  {story.title}")
+            print(f"  {story.url}\n")
 
 
 app = main
