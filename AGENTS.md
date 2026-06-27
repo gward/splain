@@ -42,7 +42,6 @@ NEWSAPI_KEY=...
 ## Running
 ```bash
 uv sync                   # install deps (dev group included by default)
+./check.sh                # automated tests and linters
 uv run splain TSLA        # last 90 days, threshold 3%
-uv run ruff check         # lint
-uv run pytest -v          # run tests
 ```
