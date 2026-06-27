@@ -69,19 +69,19 @@ Sessions live in memory only — lost on server restart, no TTL.
 
 ## Claude Integration
 
-**API key:** `ANTHROPIC_API_KEY` from environment. Missing key returns 503 on the first request to any `/chat/...` route.
+**API key:** `ANTHROPIC_API_KEY` from environment. Missing key returns 503 on any request to a `/chat/...` route.
 
 **Extraction call:**
 - Model: `claude-haiku-4-5-20251001`
 - `max_tokens`: 256
-- System prompt instructs Claude to return JSON `{"ticker", "from", "to", "threshold", "window", "source"}` using today and a 90-day lookback as defaults, or `null` if the message is a follow-up or doesn't imply a new data query.
+- System prompt instructs Claude to return JSON `{"ticker", "from", "to", "threshold", "window", "source"}` using today and a 90-day lookback as defaults, or `null` if the message is a follow-up or doesn't imply a new data query. If the response is not valid JSON (or is not `null`), treat it as `null` and fall back to `last_result`.
 
 **Narration call:**
 - Model: `claude-sonnet-4-6`
 - `max_tokens`: 1024
 - System prompt establishes Claude as a financial analyst assistant that explains stock price moves using provided correlation data concisely and grounded in the data. If no data is available, it asks the user what stock they'd like to explore.
 
-**Prompt injection:** A synthetic `{"role": "user", "content": "<correlation data>"}` turn is prepended to the narration call's message list. Correlation data is formatted as a human-readable summary of moves and stories (not raw JSON). This turn is not stored in `session["messages"]`.
+**Prompt injection:** Correlation data is injected into the system prompt of the narration call (not as a separate message turn, which would break the alternating role requirement). The narration system prompt includes a section like `"Current stock data:\n<formatted summary>"`. The formatted summary is a human-readable listing of moves and stories (not raw JSON) produced by `_format_correlations()`. If `last_result` is `None`, the system prompt notes that no data has been loaded yet.
 
 ## Architecture
 
