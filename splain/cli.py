@@ -6,7 +6,7 @@ import os
 import click
 import dotenv
 
-from splain import correlate, finnhub, newsapi, prices
+from splain import correlate, finnhub, news, newsapi, prices
 
 dotenv.load_dotenv()
 
@@ -69,13 +69,14 @@ def app(ticker, start, end, threshold, window, source):
     start_date = datetime.date.fromisoformat(start)
     end_date = datetime.date.fromisoformat(end)
 
+    fetch_fn: news.FetchFunction | None
     if source != "none":
         fetch_fn, env_var = SOURCES[source]
         api_key = os.environ.get(env_var)
         if not api_key:
             raise click.ClickException(f"{env_var} not set in environment")
     else:
-        fetch_fn, api_key = None, None
+        fetch_fn, api_key = None, ""
 
     print(f"Fetching price history for {ticker} ({start} to {end})")
     try:

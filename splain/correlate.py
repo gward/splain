@@ -13,18 +13,13 @@ class Correlation:
 
 def correlate(
     moves: list[prices.PriceMove],
-    fetch_fn,
+    fetch_fn: news.FetchFunction,
     window_days: int = 1,
-    api_key: str | None = None,
+    api_key: str = "",
 ) -> list[Correlation]:
     """For each price move, fetch news stories from around that date."""
     results = []
     for move in moves:
-        stories = fetch_fn(
-            query=move.ticker,
-            around=move.date,
-            window_days=window_days,
-            api_key=api_key,
-        )
+        stories = fetch_fn(move.ticker, move.date, window_days, api_key)
         results.append(Correlation(move=move, stories=stories))
     return results

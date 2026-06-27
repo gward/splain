@@ -1,7 +1,6 @@
 """Fetch news stories from NewsAPI (newsapi.org)."""
 
 import datetime
-import os
 
 import requests
 
@@ -11,18 +10,10 @@ from splain import news
 def fetch_stories(
     query: str,
     around: datetime.date,
-    window_days: int = 1,
-    api_key: str | None = None,
+    window_days: int,
+    api_key: str,
 ) -> list[news.NewsStory]:
-    """Return news stories matching *query* within *window_days* of *around*.
-
-    Uses NewsAPI (newsapi.org). Set NEWSAPI_KEY env var or pass api_key.
-    """
-    if api_key is None:
-        api_key = os.environ.get("NEWSAPI_KEY")
-    if not api_key:
-        raise EnvironmentError("NEWSAPI_KEY not set -- get a free key at newsapi.org")
-
+    """Return news stories matching *query* within *window_days* of *around*."""
     from_dt = around - datetime.timedelta(days=window_days)
     to_dt = around + datetime.timedelta(days=window_days)
 
@@ -43,7 +34,6 @@ def fetch_stories(
         # Free tier only covers the past ~1 month
         return []
     resp.raise_for_status()
-    data = resp.json()
 
     return [
         news.NewsStory(
@@ -53,5 +43,5 @@ def fetch_stories(
             url=art["url"],
             description=art.get("description"),
         )
-        for art in data.get("articles", [])
+        for art in resp.json().get("articles", [])
     ]

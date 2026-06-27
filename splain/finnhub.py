@@ -1,7 +1,6 @@
 """Fetch news stories from Finnhub (finnhub.io)."""
 
 import datetime
-import os
 
 import requests
 
@@ -11,18 +10,10 @@ from splain import news
 def fetch_stories(
     query: str,
     around: datetime.date,
-    window_days: int = 1,
-    api_key: str | None = None,
+    window_days: int,
+    api_key: str,
 ) -> list[news.NewsStory]:
-    """Return news stories for *query* (ticker symbol) within *window_days* of *around*.
-
-    Uses Finnhub company-news API. Set FINNHUB_KEY env var or pass api_key.
-    """
-    if api_key is None:
-        api_key = os.environ.get("FINNHUB_KEY")
-    if not api_key:
-        raise EnvironmentError("FINNHUB_KEY not set -- get a free key at finnhub.io")
-
+    """Return news stories for *query* (ticker symbol) within *window_days* of *around*."""
     from_dt = around - datetime.timedelta(days=window_days)
     to_dt = around + datetime.timedelta(days=window_days)
 
